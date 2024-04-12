@@ -14,7 +14,7 @@ namespace Assets.Scripts.Player
             }
             else if (other.gameObject.CompareTag("Enemy"))
             {
-                Debug.Log("Verloren");
+                GameManager.IsGameOver = true;
             }
 
         }

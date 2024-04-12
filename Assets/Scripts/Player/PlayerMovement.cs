@@ -68,16 +68,19 @@ namespace Assets.Scripts.Player
 
         public void OnMovePlayer(InputAction.CallbackContext context)
         {
-            var inputVector = context.ReadValue<Vector2>();
-            moveVector = new Vector3(inputVector.x, 0, inputVector.y);
+            if (!GameManager.IsGameOver)
+            {
+                var inputVector = context.ReadValue<Vector2>();
+                moveVector = new Vector3(inputVector.x, 0, inputVector.y);
 
-            if (inputVector.x > 0)
-            {
-                gameObject.GetComponentInChildren<SpriteRenderer>().flipX = true;
-            }
-            else
-            {
-                gameObject.GetComponentInChildren<SpriteRenderer>().flipX = false;
+                if (inputVector.x > 0)
+                {
+                    gameObject.GetComponentInChildren<SpriteRenderer>().flipX = true;
+                }
+                else
+                {
+                    gameObject.GetComponentInChildren<SpriteRenderer>().flipX = false;
+                }
             }
         }
     }
