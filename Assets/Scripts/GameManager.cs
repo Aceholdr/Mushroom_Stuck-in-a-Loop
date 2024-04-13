@@ -13,19 +13,48 @@ namespace Assets.Scripts
     {
         [SerializeField] TMP_Text shroomCountText;
         [SerializeField] GameObject gameOverPanel;
+        [SerializeField] GameObject nextDayPanel;
         [SerializeField] GameObject shroom;
+        [SerializeField] GameObject tree;
 
         [SerializeField] GameObject gameOverMenuFirst;
+        [SerializeField] Transform[] spawnPoints;
+        [SerializeField] GameObject enemy;
+        [SerializeField] GameObject player;
+
+        [SerializeField] int treeCalculator = 80;
+        [SerializeField] int shroomCalculator = 1;
 
         public static int ShroomCount { get; set; }
+        public static int DayCounter { get; set; }
         public static bool IsGameOver { get; set; }
         private int lastShroomCount;
 
         void Start()
         {
+            StartCoroutine(StartNewDay());
+            StartCoroutine(SpawnEnemy());
 
             shroomCountText.text = "Shrooms: 0";
             SpawnShrooms(10);
+        }
+
+        IEnumerator SpawnEnemy()
+        {
+            var longestDistance = spawnPoints[0];
+
+            for(int i = 1; i < spawnPoints.Length; i++)
+            {
+                if (Vector3.Distance(spawnPoints[i].position, player.transform.position) > Vector3.Distance(spawnPoints[i - 1].position, player.transform.position))
+                {
+                    longestDistance = spawnPoints[i];
+                }
+            }
+
+            Instantiate(Instantiate(tree, longestDistance.position, shroom.transform.rotation));
+            yield return new WaitForSeconds(1);
+
+            StartCoroutine(SpawnEnemy());
         }
 
         void Update()
@@ -41,18 +70,33 @@ namespace Assets.Scripts
                 Time.timeScale = 0;
                 gameOverPanel.SetActive(true);
 
-                if(EventSystem.current.currentSelectedGameObject == null)
+                if (EventSystem.current.currentSelectedGameObject == null)
                 {
                     EventSystem.current.SetSelectedGameObject(gameOverMenuFirst);
-                }         
+                }
             }
         }
 
         private void SpawnShrooms(int numOfShrooms)
         {
-            for (int i = 0; i < numOfShrooms; i++)
+            for (int j = -23; j < 24; j++)
             {
-                Instantiate(shroom, new Vector3(Random.Range(-50, 51), 0, Random.Range(-50, 51)), shroom.transform.rotation);
+                for (int k = -49; k < 49; k++)
+                {
+                    if(j < 20 || k < 40)
+                    {
+                        int random = Random.Range(0, 500);
+
+                        if (random < shroomCalculator)
+                        {
+                            Instantiate(shroom, new Vector3(j, 0, k), shroom.transform.rotation);
+                        }
+                        else if (random >= treeCalculator)
+                        {
+                            Instantiate(tree, new Vector3(j * 2, 0, k), shroom.transform.rotation);
+                        }
+                    }
+                }
             }
         }
 
@@ -62,16 +106,35 @@ namespace Assets.Scripts
             Time.timeScale = 1;
             EventSystem.current.SetSelectedGameObject(null);
             Scene scene = SceneManager.GetActiveScene();
-            SceneManager.LoadScene(scene.buildIndex);   
+            SceneManager.LoadScene(scene.buildIndex);
         }
 
         public void OnExitGame()
         {
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             EditorApplication.isPlaying = false;
-            #endif
+#endif
 
             Application.Quit();
+        }
+
+        public void OnNextDay()
+        {
+            EventSystem.current.SetSelectedGameObject(null);
+            Scene scene = SceneManager.GetActiveScene();
+            SceneManager.LoadScene(scene.buildIndex);
+        }
+
+        IEnumerator StartNewDay()
+        {
+            Time.timeScale = 0;
+            DayCounter++;   
+            nextDayPanel.SetActive(true);
+            nextDayPanel.GetComponentInChildren<TMP_Text>().text = " Day " + DayCounter;
+            yield return new WaitForSecondsRealtime(2);
+
+            nextDayPanel.SetActive(false);
+            Time.timeScale = 1;
         }
     }
 }

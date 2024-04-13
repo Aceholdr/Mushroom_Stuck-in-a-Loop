@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Shroom
   - Enemy
+  - House
   layers:
   - Default
   - TransparentFX

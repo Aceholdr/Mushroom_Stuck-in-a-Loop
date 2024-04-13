@@ -3,7 +3,32 @@ guid: 84533f781f4d7e648a0f8b29e0325627
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: "HouseW\xFCrfel"
+    second: {fileID: 2100000, guid: facf6be5412c4ae4189ee8145ec13ac1, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material
+    second: {fileID: 2100000, guid: bb1da6dd61325c94e9ab26eb2d11716e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material.001
+    second: {fileID: 2100000, guid: 2a9e398497c62b240a5043171d7465d9, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material.002
+    second: {fileID: 2100000, guid: 82d1e0646ee88014d8b08cd002a08e99, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material.003
+    second: {fileID: 2100000, guid: 0cbca090f5e1ac74eb5bc610a5547b28, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
