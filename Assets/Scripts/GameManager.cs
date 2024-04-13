@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
@@ -13,6 +14,8 @@ namespace Assets.Scripts
         [SerializeField] TMP_Text shroomCountText;
         [SerializeField] GameObject gameOverPanel;
         [SerializeField] GameObject shroom;
+
+        [SerializeField] GameObject gameOverMenuFirst;
 
         public static int ShroomCount { get; set; }
         public static bool IsGameOver { get; set; }
@@ -35,7 +38,13 @@ namespace Assets.Scripts
 
             if (IsGameOver)
             {
+                Time.timeScale = 0;
                 gameOverPanel.SetActive(true);
+
+                if(EventSystem.current.currentSelectedGameObject == null)
+                {
+                    EventSystem.current.SetSelectedGameObject(gameOverMenuFirst);
+                }         
             }
         }
 
@@ -50,6 +59,8 @@ namespace Assets.Scripts
         public void OnRetryGame()
         {
             IsGameOver = false;
+            Time.timeScale = 1;
+            EventSystem.current.SetSelectedGameObject(null);
             Scene scene = SceneManager.GetActiveScene();
             SceneManager.LoadScene(scene.buildIndex);   
         }

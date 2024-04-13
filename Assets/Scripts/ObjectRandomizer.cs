@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Assets.Scripts
 {
-    public class MushroomRandomizer : MonoBehaviour
+    public class ObjectRandomizer : MonoBehaviour
     {
         // Start is called before the first frame update
         void Start()
