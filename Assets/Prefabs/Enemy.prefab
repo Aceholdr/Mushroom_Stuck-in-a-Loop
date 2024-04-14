@@ -220,8 +220,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1b00ad39bbf8d32498db0436709e6101, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerSpeed: 1
-  player: {fileID: 8047591421916345947, guid: 033c3292c4cb7514180697fb2c6041c0, type: 3}
+  movementSpeed: 1
 --- !u!54 &5525638136939553725
 Rigidbody:
   m_ObjectHideFlags: 0

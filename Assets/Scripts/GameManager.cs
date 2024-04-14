@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -16,7 +17,15 @@ namespace Assets.Scripts
         [SerializeField] GameObject nextDayPanel;
         [SerializeField] GameObject shroom;
         [SerializeField] GameObject tree;
+        [SerializeField] GameObject house;
 
+        [SerializeField] GameObject instructionPanel;
+        [SerializeField] GameObject instructionMenuFirst;
+
+        [SerializeField] GameObject resultsPanel;
+        [SerializeField] GameObject resultsPanelFirst;
+
+        [SerializeField] TMP_Text gameOverText;
         [SerializeField] GameObject gameOverMenuFirst;
         [SerializeField] Transform[] spawnPoints;
         [SerializeField] GameObject enemy;
@@ -29,15 +38,24 @@ namespace Assets.Scripts
         [SerializeField] float gameStartTime = 4f;
         [SerializeField] float currentSpawnTime;
 
+        public static bool IsFirstTime { get; private set; } = true;
+
+        public static bool IsUltimateLifeForm { get; set; }
         public static float StartSpawnTime { get; set; }
         public static int ShroomCount { get; set; }
         public static int DayCounter { get; set; }
+        [SerializeField] public static int LastWaveCounter { get; set; }
         public static bool IsGameOver { get; set; }
+        public bool IsFinished { get; private set; }
+
         private int lastShroomCount;
+        [SerializeField] private int waveCount;
 
         void Start()
         {
-            if(StartSpawnTime <= 0)
+            Time.timeScale = 0;
+
+            if (StartSpawnTime <= 0)
             {
                 StartSpawnTime = gameStartTime;
             }
@@ -52,7 +70,7 @@ namespace Assets.Scripts
             StartCoroutine(SpawnEnemy());
 
             shroomCountText.text = "Shrooms: 0";
-            SpawnShrooms(10);
+            SpawnShrooms();
         }
 
         IEnumerator SpawnEnemy()
@@ -61,18 +79,46 @@ namespace Assets.Scripts
             {
                 if (!IsVisible(spawnPoints[i].position, new Vector3(1,1,1), Camera.main))
                 {
-                    Instantiate(enemy, spawnPoints[i].position, enemy.transform.rotation);
+                    if(currentSpawnTime <= 30)
+                    {
+                        Instantiate(enemy, spawnPoints[i].position, enemy.transform.rotation);
+
+                        if (IsUltimateLifeForm)
+                        {
+                            LastWaveCounter++;
+                        }
+                    }
                 }
             }
 
-            yield return new WaitForSeconds(currentSpawnTime);
+            if (IsUltimateLifeForm)
+            {
+                yield return new WaitForSeconds(spawnTimeDecrease);
+                spawnTimeDecrease += 0.01f;
+            }
+            else
+            {
+                yield return new WaitForSeconds(currentSpawnTime);
+            }
 
-            if(currentSpawnTime > 0.1f)
+
+            if(currentSpawnTime > 0.1f && !IsUltimateLifeForm)
             {
                 currentSpawnTime -= spawnTimeDecrease;
             }
+            else if (IsUltimateLifeForm)
+            {
+                currentSpawnTime += spawnTimeDecrease;
+            }
 
-            StartCoroutine(SpawnEnemy());
+            if(LastWaveCounter <= 0 && IsUltimateLifeForm)
+            {
+                IsFinished = true;
+            }
+            else if (spawnTimeDecrease <= 3f)
+            {
+                StartCoroutine(SpawnEnemy());
+            }
         }
 
         bool IsVisible(Vector3 pos, Vector3 boundSize, Camera camera)
@@ -84,6 +130,8 @@ namespace Assets.Scripts
 
         void Update()
         {
+            waveCount = LastWaveCounter;
+
             if (ShroomCount != lastShroomCount)
             {
                 shroomCountText.text = "Shrooms: " + ShroomCount;
@@ -94,15 +142,31 @@ namespace Assets.Scripts
             {
                 Time.timeScale = 0;
                 gameOverPanel.SetActive(true);
+                gameOverText.text = "You can not flee from the eternal loop.\r\nCollected mushrooms: " + ShroomCount;
 
                 if (EventSystem.current.currentSelectedGameObject == null)
                 {
                     EventSystem.current.SetSelectedGameObject(gameOverMenuFirst);
                 }
             }
+
+            if (IsFinished)
+            {
+                Time.timeScale = 0;
+                resultsPanel.SetActive(true);
+                if (EventSystem.current.currentSelectedGameObject == null)
+                {
+                    EventSystem.current.SetSelectedGameObject(resultsPanelFirst);
+                }
+            }
+
+            if (IsFirstTime && EventSystem.current.currentSelectedGameObject == null)
+            {
+                EventSystem.current.SetSelectedGameObject(instructionMenuFirst);
+            }
         }
 
-        private void SpawnShrooms(int numOfShrooms)
+        private void SpawnShrooms()
         {
             for (int j = -23; j < 24; j++)
             {
@@ -127,6 +191,9 @@ namespace Assets.Scripts
 
         public void OnRetryGame()
         {
+            IsFinished = false;
+            StartSpawnTime = gameStartTime;
+            IsUltimateLifeForm = false;
             IsGameOver = false;
             DayCounter = 0;
             ShroomCount = 0;
@@ -154,14 +221,40 @@ namespace Assets.Scripts
 
         IEnumerator StartNewDay()
         {
-            Time.timeScale = 0;
+            if (IsFirstTime)
+            {
+                instructionPanel.SetActive(true);
+            }
+
+            yield return new WaitWhile(() => IsFirstTime);
+
             DayCounter++;   
             nextDayPanel.SetActive(true);
-            nextDayPanel.GetComponentInChildren<TMP_Text>().text = "Day\n" + DayCounter;
-            yield return new WaitForSecondsRealtime(2);
 
+            if (IsUltimateLifeForm)
+            {
+                nextDayPanel.GetComponentInChildren<TMP_Text>().text = "Final Day";
+                house.SetActive(false);
+                currentSpawnTime = 0.1f;
+            }
+            else
+            {
+                nextDayPanel.GetComponentInChildren<TMP_Text>().text = "Day\n" + DayCounter;
+            }
+            
+            yield return new WaitForSecondsRealtime(2);
             nextDayPanel.SetActive(false);
+
             Time.timeScale = 1;
+        }
+
+        public void OnStartNewGame()
+        {
+            StartSpawnTime = gameStartTime;
+            Time.timeScale = 1;
+            IsFirstTime = false;
+            instructionPanel.SetActive(false);
+            EventSystem.current.SetSelectedGameObject(null);
         }
     }
 }
