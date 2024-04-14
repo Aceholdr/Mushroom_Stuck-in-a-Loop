@@ -9,12 +9,13 @@ namespace Assets.Scripts.Enemy
         Rigidbody rb;
         Vector3 moveDirection;
 
-        [SerializeField] float playerSpeed = 1f;
-        [SerializeField] GameObject player;
+        [SerializeField] float movementSpeed = 1f;
+        GameObject player;
 
         void Start()
         {
             rb = GetComponent<Rigidbody>();
+            player = GameObject.FindGameObjectWithTag("Player");
         }
 
         private void Update()
@@ -30,7 +31,7 @@ namespace Assets.Scripts.Enemy
 
         private void MoveEnemyTowardPlayer()
         {
-            rb.MovePosition(transform.position + moveDirection * playerSpeed * Time.deltaTime);
+            rb.MovePosition(transform.position + moveDirection * movementSpeed * Time.deltaTime);
 
             if (moveDirection.x > 0)
             {

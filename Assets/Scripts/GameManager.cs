@@ -25,6 +25,11 @@ namespace Assets.Scripts
         [SerializeField] int treeCalculator = 80;
         [SerializeField] int shroomCalculator = 1;
 
+        [SerializeField] float spawnTimeDecrease = 0.1f;
+        [SerializeField] float gameStartTime = 4f;
+        [SerializeField] float currentSpawnTime;
+
+        public static float StartSpawnTime { get; set; }
         public static int ShroomCount { get; set; }
         public static int DayCounter { get; set; }
         public static bool IsGameOver { get; set; }
@@ -32,6 +37,17 @@ namespace Assets.Scripts
 
         void Start()
         {
+            if(StartSpawnTime <= 0)
+            {
+                StartSpawnTime = gameStartTime;
+            }
+            else if(StartSpawnTime >= 1f)
+            {
+                StartSpawnTime -= 0.5f;
+            }
+
+            currentSpawnTime = StartSpawnTime;
+
             StartCoroutine(StartNewDay());
             StartCoroutine(SpawnEnemy());
 
@@ -41,20 +57,29 @@ namespace Assets.Scripts
 
         IEnumerator SpawnEnemy()
         {
-            var longestDistance = spawnPoints[0];
-
-            for(int i = 1; i < spawnPoints.Length; i++)
+            for(int i = 0; i < spawnPoints.Length; i++)
             {
-                if (Vector3.Distance(spawnPoints[i].position, player.transform.position) > Vector3.Distance(spawnPoints[i - 1].position, player.transform.position))
+                if (!IsVisible(spawnPoints[i].position, new Vector3(1,1,1), Camera.main))
                 {
-                    longestDistance = spawnPoints[i];
+                    Instantiate(enemy, spawnPoints[i].position, enemy.transform.rotation);
                 }
             }
 
-            Instantiate(Instantiate(tree, longestDistance.position, shroom.transform.rotation));
-            yield return new WaitForSeconds(1);
+            yield return new WaitForSeconds(currentSpawnTime);
+
+            if(currentSpawnTime > 0.1f)
+            {
+                currentSpawnTime -= spawnTimeDecrease;
+            }
 
             StartCoroutine(SpawnEnemy());
+        }
+
+        bool IsVisible(Vector3 pos, Vector3 boundSize, Camera camera)
+        {
+            var bounds = new Bounds(pos, boundSize);
+            var planes = GeometryUtility.CalculateFrustumPlanes(camera);
+            return GeometryUtility.TestPlanesAABB(planes, bounds);
         }
 
         void Update()
@@ -103,6 +128,8 @@ namespace Assets.Scripts
         public void OnRetryGame()
         {
             IsGameOver = false;
+            DayCounter = 0;
+            ShroomCount = 0;
             Time.timeScale = 1;
             EventSystem.current.SetSelectedGameObject(null);
             Scene scene = SceneManager.GetActiveScene();
@@ -130,7 +157,7 @@ namespace Assets.Scripts
             Time.timeScale = 0;
             DayCounter++;   
             nextDayPanel.SetActive(true);
-            nextDayPanel.GetComponentInChildren<TMP_Text>().text = " Day " + DayCounter;
+            nextDayPanel.GetComponentInChildren<TMP_Text>().text = "Day\n" + DayCounter;
             yield return new WaitForSecondsRealtime(2);
 
             nextDayPanel.SetActive(false);
